@@ -1,13 +1,13 @@
 from fastapi import HTTPException
 from passlib.context import CryptContext
 import jwt
-from dotenv import dotenv_values
+#from dotenv import dotenv_values
 from models import User
 from fastapi import status
+import os
+#config_credentials = dotenv_values(".env")
 
-config_credentials = dotenv_values(".env")
-
-
+SECRET = os.getenv("SECRET")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def get_hashed_password(password):
@@ -16,7 +16,7 @@ def get_hashed_password(password):
 
 async def verify_token(token: str):
     try:
-        payload = jwt.decode(token, config_credentials["SECRET"], algorithms=['HS256'])
+        payload = jwt.decode(token, SECRET, algorithms=["HS256"])
         user = await User.get(id=payload.get("id"))
 
     except:
@@ -27,9 +27,11 @@ def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
 async def authenticate_user(username, password):
-    user = await User.get(username=username)
+    user = await User.get_or_none(username=username)
+
     if user and verify_password(password, user.password):
         return user
+
     return False
 
 async def token_generator(username: str, password: str):
@@ -41,5 +43,5 @@ async def token_generator(username: str, password: str):
         "id": user.id,
         "username": user.username
     }
-    token = jwt.encode(token_data, config_credentials["SECRET"], algorithm='HS256')
+    token = jwt.encode(token_data, SECRET, algorithm="HS256")
     return token

@@ -1,6 +1,6 @@
 from fastapi import (BackgroundTasks, UploadFile, File, Form, HTTPException, status)
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
-from dotenv import dotenv_values
+#from dotenv import dotenv_values
 from pydantic import BaseModel, EmailStr
 from typing import List
 from models import User
@@ -10,20 +10,27 @@ import jwt
 
 
 
-config_credentials = dotenv_values(".env")
+#config_credentials = dotenv_values(".env")
+
+import os
+
+EMAIL = os.getenv("EMAIL")
+PASSWORD = os.getenv("PASSWORD")
+SECRET = os.getenv("SECRET")
+
+
 
 
 conf = ConnectionConfig(
-    MAIL_USERNAME = config_credentials["EMAIL"],
-    MAIL_PASSWORD = config_credentials["PASSWORD"],
-    MAIL_FROM = config_credentials["EMAIL"],
-    MAIL_PORT = 587,
-    MAIL_SERVER = "smtp.gmail.com",
-    MAIL_STARTTLS = True,
-    MAIL_SSL_TLS = False,
-    USE_CREDENTIALS = True
+    MAIL_USERNAME=EMAIL,
+    MAIL_PASSWORD=PASSWORD,
+    MAIL_FROM=EMAIL,
+    MAIL_PORT=587,
+    MAIL_SERVER="smtp.gmail.com",
+    MAIL_STARTTLS=True,
+    MAIL_SSL_TLS=False,
+    USE_CREDENTIALS=True
 )
-
 
 
 
@@ -34,7 +41,7 @@ async def send_email(email: List, instance: User):
         "email": instance.email
     }
 
-    token = jwt.encode(token_data, config_credentials["SECRET"], algorithm='HS256')
+    token = jwt.encode(token_data, SECRET, algorithm='HS256')
     
 
     template = f"""
@@ -48,7 +55,7 @@ async def send_email(email: List, instance: User):
             <h3>Account Verification</h3>
             <br>
             <p>Thanks for choosing our service! Please click the button below to verify your email</p>
-            <a style="margin-top:1rem; padding:1rem; border-radius:0.5rem; font-size:1rem;text-decoration:none; background:#0275d8; color:white;" href="http://localhost:8000/verification/?token={token}">Verify your Email</a>
+            <a style="margin-top:1rem; padding:1rem; border-radius:0.5rem; font-size:1rem;text-decoration:none; background:#0275d8; color:white;" href="https://YOUR-APP.up.railway.app/verification/?token={token}">Verify your Email</a>
 
             <p>Please ignore this email if you did not register for EasyShopas and nothing will happen. Thanks</p>
         </div>
