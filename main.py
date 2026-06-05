@@ -80,20 +80,23 @@ async def user_login(user: User = Depends(get_current_user)):
 
 
 @post_save(User)
-async def create_business(...):
+async def create_business(
+    sender: Type[User],
+    instance: User,
+    created: bool,
+    using_db: Optional[BaseDBAsyncClient],
+    update_fields: List[str]
+):
     if created:
-        business_obj = await Business.create(
+        await Business.create(
             name=instance.username,
             owner=instance
         )
 
-        await business_pydantic.from_tortoise_orm(business_obj)
-
         try:
             await send_email([instance.email], instance)
         except Exception as e:
-            print("Email failed:", e)
-
+            print(f"Email failed: {e}")
 
 @app.post("/registration/")
 async def user_registration(user: user_pydanticIn): 
