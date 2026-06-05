@@ -1,11 +1,11 @@
 from fastapi import HTTPException
 from passlib.context import CryptContext
 import jwt
-#from dotenv import dotenv_values
+from dotenv import load_dotenv
 from models import User
 from fastapi import status
 import os
-#config_credentials = dotenv_values(".env")
+load_dotenv()
 
 SECRET = os.getenv("SECRET")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

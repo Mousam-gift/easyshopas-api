@@ -1,6 +1,6 @@
 from fastapi import (BackgroundTasks, UploadFile, File, Form, HTTPException, status)
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
-#from dotenv import dotenv_values
+from dotenv import load_dotenv
 from pydantic import BaseModel, EmailStr
 from typing import List
 from models import User
@@ -11,6 +11,7 @@ import jwt
 
 
 #config_credentials = dotenv_values(".env")
+load_dotenv()
 
 import os
 

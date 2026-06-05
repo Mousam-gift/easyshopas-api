@@ -33,6 +33,10 @@ SECRET = os.getenv("SECRET")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
 
+
+
+os.makedirs("static", exist_ok=True)
+os.makedirs("static/images", exist_ok=True)
 #static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
@@ -76,21 +80,20 @@ async def user_login(user: User = Depends(get_current_user)):
 
 
 @post_save(User)
-async def create_business(
-    sender: Type[User],
-    instance: User,
-    created: bool,
-    using_db: Optional[BaseDBAsyncClient],
-    update_fields: List[str]
-) -> None:
+async def create_business(...):
     if created:
-        business_obj = await Business.create(name = instance.username, owner = instance)
+        business_obj = await Business.create(
+            name=instance.username,
+            owner=instance
+        )
+
         await business_pydantic.from_tortoise_orm(business_obj)
-        #send email 
+
         try:
             await send_email([instance.email], instance)
         except Exception as e:
-            print("Email sending failed:", e)
+            print("Email failed:", e)
+
 
 @app.post("/registration/")
 async def user_registration(user: user_pydanticIn): 
