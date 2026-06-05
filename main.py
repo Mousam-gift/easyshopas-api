@@ -22,9 +22,13 @@ from fastapi import UploadFile, File
 import secrets
 from PIL import Image
 from fastapi.staticfiles import StaticFiles 
+import os
+
 
 
 app = FastAPI()
+BASE_URL = "https://easyshopas-api-production.up.railway.app"
+SECRET = os.getenv("SECRET")
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
@@ -40,11 +44,7 @@ async def generate_token(request_form: OAuth2PasswordRequestForm = Depends()):
 
 async def get_current_user(token: str = Depends(oauth2_scheme)):
     try:
-        payload = jwt.decode(
-            token,
-            config_credentials["SECRET"],
-            algorithms=["HS256"]
-        )
+        payload = jwt.decode(token, SECRET, algorithms=["HS256"])
         user = await User.get(id=payload.get("id"))
     except:
         raise HTTPException(
@@ -59,7 +59,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 async def user_login(user: User = Depends(get_current_user)):
     business = await Business.get(owner = user)
     logo = business.logo 
-    logo_path = f"http://localhost:8000/static/images/{logo}"
+    logo_path = f"{BASE_URL}/static/images/{logo}"
 
     return{
         "status":"ok",
@@ -87,7 +87,10 @@ async def create_business(
         business_obj = await Business.create(name = instance.username, owner = instance)
         await business_pydantic.from_tortoise_orm(business_obj)
         #send email 
-        await send_email([instance.email], instance)
+        try:
+            await send_email([instance.email], instance)
+        except Exception as e:
+            print("Email sending failed:", e)
 
 @app.post("/registration/")
 async def user_registration(user: user_pydanticIn): 
@@ -161,7 +164,7 @@ async def upload_profile_image(
         await business.save()
     else:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized to perform this action", headers={"WWW-Authenticate": "Bearer"})
-    file_url = f"http://localhost:8000/static/images/{token_name}"
+    file_url = f"{BASE_URL}/static/images/{token_name}"
     return {"status": "ok", "filename": file_url}
 
 @app.post("/uploadfile/product/{id}")
@@ -193,7 +196,7 @@ async def create_upload_file(id: int,file: UploadFile = File(...),user: User = D
     else:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized to perform this action", headers={"WWW-Authenticate": "Bearer"})
 
-    file_url = f"http://localhost:8000/static/images/{token_name}"
+    file_url = f"{BASE_URL}/static/images/{token_name}"
     return {"status": "ok", "filename": file_url}
 
 #CRUD functionality
